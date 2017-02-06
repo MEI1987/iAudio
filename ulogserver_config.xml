@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<ulogserver version="0.0.1">  
+    <appender> 
+      <name>all</name> 
+      <logfilepath>/data/misc/iAudio/config/</logfilepath>
+      <logfilelen>16000</logfilelen> 
+      <logformat>date</logformat> 
+      <separator>[]</separator>
+    </appender>
+</ulogserver>
