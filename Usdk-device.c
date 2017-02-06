@@ -760,6 +760,7 @@ static int CookerHood_ctrl(int attr,int val){
                 else if(val==1){
                     strcpy(value,"309001");
                 }
+            }
             else if(attr=0x03){
                 strcmp(name,"209004");//windspeed open close
                 if(val==0){
@@ -784,8 +785,7 @@ static int CookerHood_ctrl(int attr,int val){
                     strcpy(value,"309001");
                 }
             }
-             ret = ugw_set_attr(handle, ctx, ctx->devs[i].device_id,CookerHood_attr[devAttr], 
-                     CookerHood_val[statusVal]);
+             ret = ugw_set_attr(handle, ctx, ctx->devs[i].device_id,name,value);
              if(ret!=0){
                 printf("Cooker Hood ctrl failed; ret=%d\n", ret);
              }
@@ -794,9 +794,7 @@ static int CookerHood_ctrl(int attr,int val){
 	ugw_free_context(ctx);
 
 	return ret;
-  
 }
-
 /*  
 static int WashingMachine_AskState(int dev,uint8 Attr, uint8 *Val){
 
