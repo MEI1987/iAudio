@@ -40,6 +40,7 @@ char iAudio_mac_string[32]={0};
 char iAudio_ip_string[16] = {0};
 struct music_info music_buf={0};
 
+int notify_light_fd;
 //-------------------------------------------------------------------
 
 void iAudio_state_cb(br_handle_t gw,
@@ -79,7 +80,6 @@ int iAudio_attr_write_handler(br_dev_handle_t dev_ctr,
         //TODO: save the request for rsp
         char* app_name=(char*)name;
         char* app_value=(char*)value;
-       // get_all_propery(app_name,dev_ctr,request);
         for(int i=1;i<11;i++){
             if((strcmp(iAudio_attr[i],app_name)==0)&&(i<5)){
                 iAudio_light_ctrl(app_name,app_value,0,0);
@@ -111,7 +111,6 @@ int iAudio_op_handler(br_dev_handle_t dev,
 {
     printf("get op %s, %s\n", op, (char *)cb_param);
     //TODO: save the request for rsp
-//由于手机端同事找不到op接口，不用，无语
     if(dev==reg_iAudio_info->registered_dev_br){
         if(strcmp(op,"getAllProperty")==0){
             param_list_t * args = br_param_list_init();
@@ -149,12 +148,7 @@ void get_all_propery(char* op,br_dev_handle_t dev,ugw_request_handle_t request){
         br_dev_operation_rsp(dev,request,0,args);
         br_param_list_destroy(args);
     }
-
 }
-
-
-
-
 
 void iAudio_light_ctrl(char* app_name,char* app_value,int v_name,int v_value){
     int fd;  
@@ -258,7 +252,6 @@ void iAudio_music_ctrl(char* app_name,char* app_value){
     buf[28]=atoi(app_value);
     buf[30]=0xFD;
     iAudio_sendmsg(buf,31);
-
 }
 
 void iAudio_sendmsg(char* buf,int len){
@@ -266,7 +259,6 @@ void iAudio_sendmsg(char* buf,int len){
     mymsg.type=MSG_SOCKET;
     memcpy(&mymsg.msg,buf,len);
     socket_send2(&mymsg,len);
-
 }
 
 void iAudio_music_report(int attr,int min,int val,char* music_name){
@@ -316,7 +308,7 @@ void iAudio_light_report(){
     int fd=open(IAUDIO_LIGHT_DEV,O_RDWR);
     if(fd <= 0){
         printf("Can not open keyboard input file\n");
-     }
+    }
 
     //char buf[128]={0};
     fd_set rfds;
@@ -340,15 +332,20 @@ void iAudio_light_report(){
         }
     }
 }
-void notify_light_ctrl(int cmd){
-    int fd;
-    if((fd = open("/dev/rgb-leds", O_RDWR)) < 0){
+void notify_light_init(){
+    if((notify_light_fd= open(IAUDIO_NOTIFY_LIGHT, O_RDWR)) < 0){
         perror("fail to open");
     }
-    write(fd,&cmd,sizeof(cmd));
-    close(fd);
-}
+    return;
 
+}
+void notify_light_ctrl(int cmd){
+    write(notify_light_fd,&cmd,sizeof(cmd));
+    return;
+}
+void notify_light_close(){
+    close(notify_light_fd);
+}
 //----------------------------------------------------------------------------------
 dev_base_info_handle_t dev_br_handle(char* dev_mac,char* typeid){
 	

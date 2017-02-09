@@ -79,7 +79,17 @@ typedef struct{
 	unsigned char msg[MAXDATASIZE];
 	//char *msg;
 }MSG;
+                                
 
+// 呼吸灯五种状态（需求中30hz/60hz 时间太短故作了修改 变为2hz/20hz）
+typedef enum {
+    TIFY_CMD_INVALID = 0,
+    NOTIFY_CMD_BLUE_30HZ,     // 蓝色闪烁20hz 配对模式
+    NOTIFY_CMD_RED_30HZ,      // 红色闪烁20hz 网络断开
+    NOTIFY_CMD_GREEN,         // 绿色常亮 运行状态
+    NOTIFY_CMD_WHITE,         // 白色常亮 语音待命
+    NOTIFY_CMD_WHITE_60HZ,    // 白灯闪烁 2hz 语言命令执行
+} notify_light_cmd;
 
 int GetMessage(TASK_TYPE m_TaskId, MSG* m_msg);
 

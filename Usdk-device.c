@@ -599,24 +599,52 @@ static void AirFilter_StateUpdate(char* airfilter_devmac){
 }
 
 /****************************WaterHeater***********************************/
-static int WaterHeater_ctrl(uint8 Attr, uint8 Val){
-	uint8 devAttr = Attr;
-	uint8 statusVal = Val;
+static int WaterHeater_ctrl(int attr, int val){
 	int ret;
+    char name[10]={0};
+    char value[10]={0};
 						
 	context_t *ctx = ugw_new_context();
-    for(int i=0;i<ctx->dev_count;i++){
-        if(memcmp(ctx->devs[i].type_id,Airfil_DEV,strlen(WaterHeater_DEV))==0){
-            if ((ret = ugw_set_attr(handle, ctx, ctx->devs[i].device_id, 
-            WaterHeaterAttr[devAttr], Attr_val[statusVal])) != 0){
-            printf("WaterHeater_ctrl failed; ret=%d\n", ret);
-            printf("%s CMD_CTRL(%s) error!\n",ctx->devs[i].device_id,WaterHeaterAttr[devAttr]);
-            ret = FALSE;
+
+	for(int i=0;i<ctx->dev_count;i++){
+	/*	printf("device_id:%s,ip:%s,connect_status:%d,connect_type:%d,device_type:%s\n",
+			context->devs[i].device_id,context->devs[i].ip,context->devs[i].connect_status,
+			context->devs[i].connect_type, context->devs[i].deviceType);*/
+        if(strcmp(ctx->devs[i].type_id,WaterHeater_DEV)==0){
+            if(attr==0x01){
+                strcpy(name,"218001");//kaiguanji
+                if(val==0){
+                strcpy(value,"318000");
+                }
+                else if(val==1){
+                strcpy(value,"318001");
+                }
             }
-            else{
-                ret = TRUE;
+            else if(attr==0x03){
+                strcpy(name,"218002");//shezhi temp
+                for(int num=35;num<71;num++){
+                    if(num==val){
+                        strcpy(value,waterheaterTem_val[num-35]);
+                    }
+                }
             }
-        
+            else if(attr==0x08){//qingjing moshi
+                strcpy(name,"21800e");
+                if(val==0x00){
+                    strcpy(value,"318000");
+                }
+                else if(val==0x01){
+                    strcpy(value,"318001");
+                }                
+                else if(val==0x02){
+                    strcpy(value,"318002");
+                }
+            }
+        ret = ugw_set_attr(handle, ctx, ctx->devs[i].device_id,name,value);
+             if(ret!=0){
+                printf("Water Heater  ctrl failed; ret=%d\n", ret);
+             }
+
         }
     }
 

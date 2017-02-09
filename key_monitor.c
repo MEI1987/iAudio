@@ -22,12 +22,13 @@
 //#include "iAudio.h" // 为什么头文件重复引用了Audio.h:12:2: error: unknown type name 'br_dev_handle_t'？
 
 extern void iAudio_light_ctrl(char* app_name,char* app_value,int v_name,int v_value);
+extern void notify_light_ctrl(int cmd);
+
 void key_monitor(){
     printf("key monitor init \n");
     int fd;
     if((fd = open("/dev/input/event2", O_RDWR)) < 0){
         perror("Can not open keyboard input file\n");
-    
     }
        
     char buf[128]={0};
@@ -115,9 +116,7 @@ void key_monitor(){
                                 light_ctrl_t=press_t;
                             }
                             else{
-                                
                                 printf("next Song normal Mode\n");
-                            
                             }
                         }
                         break;
@@ -145,6 +144,8 @@ void key_monitor(){
                             if(((song_n[sn_count]-song_n[sn_count-1])>3)&&((song_pre[spre_count]-song_pre[spre_count-1])>3)){
                             // if ((song_pre[spre_count]-song_pre[spre_count-1])>3){
                                 printf("start network config\n");
+                                notify_light_ctrl(NOTIFY_CMD_BLUE_30HZ);//配完后再恢复成原样
+
                                 spre_count=0; 
                             }
                             else if(press_t-light_ctrl_t<5){

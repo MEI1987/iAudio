@@ -16,6 +16,7 @@ extern void key_monitor();
 extern void light_init();
 
 
+extern void notify_light_init();
 
 
 
