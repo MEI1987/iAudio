@@ -28,6 +28,11 @@
 void iAudio_light_ctrl(char* app_name,char* app_value,int v_name,int v_value);
 void get_all_propery(char* op,br_dev_handle_t dev,ugw_request_handle_t request);
 extern void socket_send2(void* buf,int len);
+
+void iAudio_music_ctrl(char* app_name,char* app_value);
+
+int  get_light_status();
+void iAudio_sendmsg(char* buf,int len);
 dev_handle_t *dev;
 br_callback_t cb;
 pthread_t thread_register;
@@ -38,7 +43,7 @@ dev_reg_devmap* reg_iAudio_info;
 unsigned char iAudio_mac_byte[6]={0};
 char iAudio_mac_string[32]={0};
 char iAudio_ip_string[16] = {0};
-struct music_info music_buf={0};
+struct music_info music_buf={{0}};
 
 int notify_light_fd;
 //-------------------------------------------------------------------
@@ -86,7 +91,7 @@ int iAudio_attr_write_handler(br_dev_handle_t dev_ctr,
                 break;
             }    
             else if((memcmp(iAudio_attr[i],app_name,strlen(app_name))==0)&&(i>=5)&&(i<10)){
-                iAudio_music_ctrl(app_name,app_value);
+                 iAudio_music_ctrl(app_name,app_value);
                 break;
             }	
         }
@@ -238,7 +243,7 @@ void iAudio_music_ctrl(char* app_name,char* app_value){
     buf[5]=0x18;
     buf[24]=0x01;
     buf[25]=0x0a;
-    Socket_data music_data={0};
+    //Socket_data music_data={{0}};
     if((strcmp(app_name,"playMode")==0)){//播放 暂停
         buf[26]=0x01;
     }
@@ -298,7 +303,7 @@ int  get_light_status(){
     }
 
     int light_0x;
-    int readb=read(fd,&light_0x,sizeof(light_0x));
+    read(fd,&light_0x,sizeof(light_0x));
     
     return light_0x;
     close(fd);
@@ -464,7 +469,7 @@ void iAudio_unpack(void* msg,int msg_len){
             break;
         case DEV_AudioMusic:
             if(iAudio_soc->devName_len!=0){
-                memcmp(music_name,&iAudio_soc->devName[0],32);
+                memcpy(music_name,&iAudio_soc->devName[0],iAudio_soc->devName_len);
             }
             
             iAudio_music_report(iAudio_soc->devAttr[1],iAudio_soc->statusVal[0],iAudio_soc->statusVal[1],music_name);

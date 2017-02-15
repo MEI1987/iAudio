@@ -20,7 +20,6 @@ static void socket_unpackage(void *data, int len){
 	uint8 buf[MAXDATASIZE] = {0};
     Socket_data Socket = {{0},};
 	int buf_len = len;
-	TASK_TYPE Msg_Queue_type = 0;
 	memcpy(&buf , data, buf_len);
 
 	if((buf[24] == 1)||(buf[24] == 0))
@@ -28,7 +27,6 @@ static void socket_unpackage(void *data, int len){
 
     switch(Socket.devType){
 		case DEV_TYPE_UGW:                                
-            Msg_Queue_type = TASK_USDK_SMSG;
             socket_msg.type = MSG_USDK;
             buf[1] = buf_len ;
                             
@@ -41,7 +39,6 @@ static void socket_unpackage(void *data, int len){
 			break;				
 
         case DEV_TYPE_IAUDIO:
-            Msg_Queue_type = TASK_USDK_SMSG;
             socket_msg.type = MSG_USDK;
             buf[1] = buf_len ;
                             
@@ -62,9 +59,12 @@ static void socket_unpackage(void *data, int len){
 /*socket_recv_thread*/
 void socket_recv_pthread(void){
 	struct sockaddr_in server_sockaddr,client_sockaddr;
-	int sin_size,recvbytes;
+	int recvbytes;
+    socklen_t sin_size;
 	fd_set readfd;
 	int sockfd,client_fd;
+    sockfd=0;
+    client_fd=0;
 	int reuse=1;
 	uint8 buf[MAXDATASIZE] = {0};
 	
@@ -236,7 +236,6 @@ static void scocket_once_send(void *msg, int len){
 
 /*socket_send_thread*/
 void socket_send2(void* buf,int len){
-	int ret;
 	MSG *socket_msg=(MSG*)buf;
 	printf("socket_msg.type =%ld \n" ,socket_msg->type);
 

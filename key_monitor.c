@@ -44,7 +44,6 @@ void key_monitor(){
     int spre_count=0;
     long light_open_t=0;
     long light_ctrl_t=0;//brightness mode time
-    int net_count=0;
     long song_n[10]={0};
     long song_pre[10]={0};
     int re_count=0;
@@ -123,9 +122,14 @@ void key_monitor(){
                     case 164:
                         play_p[re_count]=press_t;
                         if(my_event->value==0){
-                            if((play_p[re_count]-play_p[re_count-1])>5){
+                            if(re_count>0){
+                               if((play_p[re_count]-play_p[re_count-1])>5){//jinggao shi zheli
                                 system("reboot");
                                 re_count=0;
+                                }
+                                else{
+                                printf("reboot count error\n");
+                                }
                             }
                         }
                     
@@ -141,7 +145,7 @@ void key_monitor(){
                         if(my_event->value==0){
                             int intevl_n2=song_n[sn_count]-song_n[sn_count-1];
                             int intevl_p2=song_pre[spre_count]-song_pre[spre_count-1];
-                            if(((song_n[sn_count]-song_n[sn_count-1])>3)&&((song_pre[spre_count]-song_pre[spre_count-1])>3)){
+                            if((intevl_n2>3)&&(intevl_p2>3)){
                             // if ((song_pre[spre_count]-song_pre[spre_count-1])>3){
                                 printf("start network config\n");
                                 notify_light_ctrl(NOTIFY_CMD_BLUE_30HZ);//配完后再恢复成原样
@@ -161,6 +165,7 @@ void key_monitor(){
                         break;
                 }
                 count++;
+                re_count++;
             }
         }
     }

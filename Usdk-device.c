@@ -14,16 +14,18 @@ static void* attr_push_callback(void *arg, context_t *context);
 static void* alarm_push_callback(void *arg, context_t *context);
 static uint8 judge_wifi_dev(char* device_type);
 static void USDK_devid_to_upmac(char* devid);
+/*
 static void USDK_devid_to_listmac(char* devid);
 static void Aircondition_StateUpdate(char* aircondition_devmac);
 static void AirFilter_StateUpdate(char* aircondition_devmac);
 static void WaterHeater_StateUpdate(char* aircondition_devmac);
 static void WashingMachine_StateUpdate(char* WashingMachine_devmac);
+*/
 static void *wstime_up_f(void);
 extern void attr_to_cloud(char* attr[],char* attr_val[],int attr_num);
-extern void Risco_alarm_to_cloud(char alarm_value1,char alarm_value2,char* attrvalue);
 
-static void WIFI_DevState_update(uint8 devtype,char* devmac);
+
+//static void WIFI_DevState_update(uint8 devtype,char* devmac);
 
 extern void socket_send2(void* buf);
 extern char* Robot_Attr[];
@@ -55,13 +57,14 @@ static void* dev_list_callback(void *arg, context_t *context){
 	printf("dev_list_callback come in:dev_count = %d------------------------\n",context->dev_count);
 	for(int i=0;i<context->dev_count;i++)
 		printf("device_id:%s,ip:%s,connect_status:%d,connect_type:%d\n",context->devs[i].device_id,context->devs[i].ip,context->devs[i].connect_status,context->devs[i].connect_type);
+    
+    return context;
 }
 
 static void* attr_push_callback(void *arg, context_t *context){
 	
 	time_t timep;
 	time(&timep);
-    int wif_devtype;	
 	printf( "attr current time:%s \n" , ctime(&timep));
 	
 	for(int i=0;i<context->pair_count;i++)
@@ -81,6 +84,7 @@ static void* attr_push_callback(void *arg, context_t *context){
     }
     ugw_free_context(ctx);
 */
+    return context;
 }
 
 static void* alarm_push_callback(void *arg, context_t *context){
@@ -89,6 +93,7 @@ static void* alarm_push_callback(void *arg, context_t *context){
 	for(int i=0;i<context->pair_count;i++){
 		printf("alarm name:%s,value:%s\n",context->pairs[i].name,context->pairs[i].value);
 	}
+    return context;
 }
 static uint8 judge_wifi_dev(char* type_id)//MEI 2015.11.6
 {
@@ -112,6 +117,7 @@ static uint8 judge_wifi_dev(char* type_id)//MEI 2015.11.6
     return wifi_device;
 
 }
+/*
 static void WIFI_DevState_update(uint8 devtype,char* devmac)//MEI2015.11.18
 {
     switch(devtype) {
@@ -136,7 +142,7 @@ static void WIFI_DevState_update(uint8 devtype,char* devmac)//MEI2015.11.18
             break;
             }
 }
-
+*/
 /*
 int ugw_get_same_type_devs(uint8 dev){
 	 int devNum = 0 ;
@@ -202,23 +208,18 @@ int ugw_get_same_type_devs(uint8 dev){
 
 static uint8 ConvertCharToHex(char ch)
 {
-    if ((ch >= '0')&&(ch <= '9'))
-
-    {
+    if ((ch >= '0')&&(ch <= '9')){
         return (ch-'0');
     }
 
-    else if ((ch >= 'A')&&(ch <= 'Z'))
-
-    {
+    else if ((ch >= 'A')&&(ch <= 'Z')){
         return ((ch-'A')+0x0A);
     }
 
-    else if ((ch >= 'a')&&(ch <= 'z'))
-
-    {
+    else if ((ch >= 'a')&&(ch <= 'z')){
         return ((ch-'a')+0x0A);
     }
+    return 0;
 }
 
 static void USDK_devid_to_upmac(char* devid){
@@ -226,7 +227,6 @@ static void USDK_devid_to_upmac(char* devid){
 	char mac[32]={0};
 	int i=0;
 	int j=0;
-	char output[32]={0};
 
 	while(*devid!='\0'){
 		if(j>3){
@@ -236,16 +236,16 @@ static void USDK_devid_to_upmac(char* devid){
 		devid++;
 		j++;
 	}
-        for(i=0; i<(strlen(mac)/2); i++){
-             output_MAC[i] = (ConvertCharToHex(mac[i*2])<<4);
-       	     output_MAC[i] += ConvertCharToHex(mac[i*2+1]);
-            
-            printf("0x%x ",  output_MAC[i]);
-        }
+    for(i=0; i<(strlen(mac)/2); i++){
+         output_MAC[i] = (ConvertCharToHex(mac[i*2])<<4);
+         output_MAC[i] += ConvertCharToHex(mac[i*2+1]);
+        
+        printf("0x%x ",  output_MAC[i]);
+    }
 	printf("\n");
 }
 
-
+/*
 static void USDK_devid_to_listmac(char* devid){
 
 	uint8 mac[32]={0};
@@ -265,7 +265,7 @@ static void USDK_devid_to_listmac(char* devid){
     }
 	printf("\n");
 }
-
+*/
 
 static void USDK_msg_up(void *data, uint8 len,uint8* mac_id)
 {
@@ -296,7 +296,7 @@ static int Airconditon_ctrl(uint8 Attr, uint8 Val)
 
     ugw_get_devs(handle, ctx);
 
-    for(int i=0;i<ctx->dev_count;i++){
+    for(int i=0;i<ctx->dev_count;i++){//忘写风速的了``
        if(strcmp(ctx->devs[i].type_id,Aircon_DEV)==0){
        // if(memcmp(ctx->devs[i].type_id,Aircon_DEV,strlen(Aircon_DEV))==0){
             if(devAttr==0x19)
@@ -443,6 +443,7 @@ static int Airconditon_ctrl(uint8 Attr, uint8 Val)
 	
 	return ret;
 }
+/*
 static int Airconditon_AskState(int dev,uint8 Attr, uint8 *Val)
 {
 	int ret;
@@ -454,14 +455,15 @@ static int Airconditon_AskState(int dev,uint8 Attr, uint8 *Val)
 		ret = FALSE;
    	}
 	else{				
-		*Val =(uint8)atoi(ctx->value);//value<-->last
+		*Val =(uint8)atoi(ctx->value);//valuelast
 		ret = TRUE;
 	}
 	ugw_free_context(ctx);
 
 	return ret;
 }
-
+*/
+/*  
 static void Aircondition_StateUpdate(char* aircondition_devmac){
 
 	int ret;
@@ -512,7 +514,7 @@ static void Aircondition_StateUpdate(char* aircondition_devmac){
 
 	ugw_free_context(ctx);
 }
-
+*/
 /****************************AirFilter***********************************/
 
 static int AirFilter_ctrl(uint8 Attr, uint8 Val){
@@ -540,7 +542,7 @@ static int AirFilter_ctrl(uint8 Attr, uint8 Val){
 	ugw_free_context(ctx);
 	return ret;
 }
-
+/*  
 static int AirFilter_AskState(int dev,uint8 Attr, uint8 *Val){
 	int ret;
 
@@ -597,10 +599,10 @@ static void AirFilter_StateUpdate(char* airfilter_devmac){
 
 	ugw_free_context(ctx);
 }
-
+*/
 /****************************WaterHeater***********************************/
 static int WaterHeater_ctrl(int attr, int val){
-	int ret;
+	int ret=0;
     char name[10]={0};
     char value[10]={0};
 						
@@ -641,9 +643,9 @@ static int WaterHeater_ctrl(int attr, int val){
                 }
             }
         ret = ugw_set_attr(handle, ctx, ctx->devs[i].device_id,name,value);
-             if(ret!=0){
+        if(ret!=0){
                 printf("Water Heater  ctrl failed; ret=%d\n", ret);
-             }
+         }
 
         }
     }
@@ -668,7 +670,7 @@ static void WaterHeater_group_ctrl(int val_num, char* group_cmd,pair_t * pairval
 			
 	ugw_free_context(ctx);
 }
-
+/*  
 static int WaterHeater_AskState(int dev,uint8 Attr, uint8 *Val){
 	int ret;
 
@@ -733,7 +735,7 @@ static void WaterHeater_StateUpdate(char* WaterHeater_devmac){
 	ugw_free_context(ctx);
 
 }
-
+*/
 /****************************WASHINGMACHINE**********************************MEI2016.1.15*/
 static int WashingMachine_ctrl(uint8 Attr, uint8 Val){
 	uint8 devAttr = Attr;
@@ -780,7 +782,7 @@ static int CookerHood_ctrl(int attr,int val){
                     strcpy(value,"209001");
                 }
             }
-            else if(attr=0x02){
+            else if(attr==0x02){
                 strcmp(name,"209002");//light open close
                 if(val==0){
                     strcpy(value,"309000");
@@ -789,7 +791,7 @@ static int CookerHood_ctrl(int attr,int val){
                     strcpy(value,"309001");
                 }
             }
-            else if(attr=0x03){
+            else if(attr==0x03){
                 strcmp(name,"209004");//windspeed open close
                 if(val==0){
                     strcpy(value,"309000");
@@ -843,6 +845,8 @@ static int WashingMachine_AskState(int dev,uint8 Attr, uint8 *Val){
 	return ret;
 }*/
  void *wstime_up_f(void){
+    int num=10;
+    int *address=&num;
 	
     while(1){
         int time_value[2]={0};
@@ -888,15 +892,14 @@ static int WashingMachine_AskState(int dev,uint8 Attr, uint8 *Val){
 						USDK_msg_up(buf_timeup, 31,output_MAC);
 
 					}
-						
 				}
-
 			}
 			 ugw_free_context(context);
 			sleep(60);
 		}
-    return;
+    return address;//jinshi wei xiaochu jinggao
 }
+/*
 static void WashingMachine_StateUpdate(char* WashingMachine_devmac) {
 
 	int ret;
@@ -944,12 +947,10 @@ static void WashingMachine_StateUpdate(char* WashingMachine_devmac) {
 
 	ugw_free_context(ctx);
 }
-
+*/
 void USDK_unpacket(void *data, uint8 len){
 	uint8 buf[100] = {0};
-	uint8 Socket_len = len;
 	Socket_data Socket = {{0}};
-	int ret;
     int i;
 	memcpy(buf, data, len);
 
@@ -966,7 +967,7 @@ void USDK_unpacket(void *data, uint8 len){
 			if(Socket.devAttrNo == 1){
 				switch(Socket.dev){
 					case DEV_WIFI_Aircondition:
-							ret = Airconditon_ctrl( Socket.devAttr[1],Socket.statusVal[1]);
+					    Airconditon_ctrl( Socket.devAttr[1],Socket.statusVal[1]);
 						/*	if(ret){
 								buf[26] = Socket.devAttr[1];
 								buf[28] = Socket.statusVal[1];
@@ -977,7 +978,7 @@ void USDK_unpacket(void *data, uint8 len){
 						break;
 
 					case DEV_WIFI_AirFilter:
-							ret = AirFilter_ctrl( Socket.devAttr[1],Socket.statusVal[1]);
+					    AirFilter_ctrl( Socket.devAttr[1],Socket.statusVal[1]);
 						/*	if(ret){
 								buf[26] = Socket.devAttr[1];
 								buf[28] = Socket.statusVal[1];
@@ -989,7 +990,7 @@ void USDK_unpacket(void *data, uint8 len){
 
 					case DEV_WIFI_WaterHeater:
 							if(Socket.devAttr[1]!=11){
-								ret = WaterHeater_ctrl( Socket.devAttr[1],Socket.statusVal[1]);
+							    WaterHeater_ctrl( Socket.devAttr[1],Socket.statusVal[1]);
 							/*	if(ret){
 									buf[26] = Socket.devAttr[1];
 									buf[28] = Socket.statusVal[1];
@@ -1019,7 +1020,7 @@ void USDK_unpacket(void *data, uint8 len){
 						break;
 					case DEV_WIFI_Washer:
 						for(i=0; i < dev_num; i++){
-							ret = WashingMachine_ctrl( Socket.devAttr[1],Socket.statusVal[1]);
+						    WashingMachine_ctrl( Socket.devAttr[1],Socket.statusVal[1]);
 						/*	if(ret){
 								buf[26] = Socket.devAttr[1];
 								buf[28] = Socket.statusVal[1];
@@ -1029,7 +1030,7 @@ void USDK_unpacket(void *data, uint8 len){
                             */
 						}
                     case DEV_WIFI_CookerHood:
-                        ret=CookerHood_ctrl(Socket.devAttr[1],Socket.statusVal[1]);
+                        CookerHood_ctrl(Socket.devAttr[1],Socket.statusVal[1]);
 
 						break;
 					default:
@@ -1038,7 +1039,7 @@ void USDK_unpacket(void *data, uint8 len){
 			}
 			break;
 		}
-	
+/*	
 		case SOCKET_CMD_ASK:{
 			int i;
 			
@@ -1094,14 +1095,12 @@ void USDK_unpacket(void *data, uint8 len){
 				}
 			}
 		}
+        */
 		default:
 			break;	
 	}
 }
 void USDK_device_txloop(void){
-
-	int ret;
-	MSG usdk_msg ;
 
 	if (handle <= 0) {
 		//printf("ERR: rx devfd <= 0\n");
