@@ -23,7 +23,7 @@
 
 extern void iAudio_light_ctrl(char* app_name,char* app_value,int v_name,int v_value);
 extern void notify_light_ctrl(int cmd);
-
+extern void iAudio_sendmsg(char* buf,int len);
 void key_monitor(){
     printf("key monitor init \n");
     int fd;
@@ -88,10 +88,25 @@ void key_monitor(){
                                 light_open_t=press_t;//flag light open time
                                 iAudio_light_ctrl("","",1,1);//必须指向一个有效的对象
                             }
+                            //还有增大音箱降低音量
+                            char buf_music[31]={0};
+                            buf_music[1]=0x1f;
+                            buf_music[2]=0x01;
+                            buf_music[3]=0x03;
+                            buf_music[4]=0x05;//音箱本体`
+                            buf_music[5]=0x18;//音箱音乐
+                            buf_music[24]=0x01;
+                            buf_music[25]=0x0a;
+                            buf_music[26]=0x03;
+                            buf_music[28]=0x01;//增大音量
+                            buf_music[30]=0xFD;
+
+                            iAudio_sendmsg(buf_music,31);
+                           // SendMsg();
                             count=0;
                         }
                         break;
-                    case 163:
+                    case 250:
                         sn_count++;//被绕晕了，数据相减，最好别用0
                         song_n[sn_count]=press_t;
                         if((press_t-light_open_t)<5){
@@ -119,7 +134,7 @@ void key_monitor(){
                             }
                         }
                         break;
-                    case 164:
+                    case 251://修改后歌曲控制非音量键不再触发安卓原始
                         play_p[re_count]=press_t;
                         if(my_event->value==0){
                             if(re_count>0){
@@ -135,7 +150,7 @@ void key_monitor(){
                     
                         printf("key play pause\n");
                         break;
-                    case 165:
+                    case 252:
                         spre_count++;//方后面时，对应的pre song 会是负数,因为你这边按住，那边松开，最大值达不到sn_count，一减就是负的了
                         song_pre[spre_count]=press_t;
                         if((press_t-light_open_t)<5){

@@ -307,24 +307,24 @@ static int Airconditon_ctrl(uint8 Attr, uint8 Val)
                     ret = FALSE;
                 }
                 else{
-                        int ti;
-                        for(ti=0; ti<=30; ti ++){
-                            if(strcmp(ctx->value, Attr_val[ti]) == 0){
-                                if(statusVal){
-                                     if( ti == 30)
-                                        statusVal = 30;
-                                     else
-                                        statusVal = ti+1;
-                                }
-                                else{
-                                     if(ti == 0)
-                                        statusVal = 0;
-                                     else
-                                        statusVal = ti-1;
-                                }
-                                break;
+                    int ti;
+                    for(ti=0; ti<=30; ti ++){
+                        if(strcmp(ctx->value, Attr_val[ti]) == 0){
+                            if(statusVal){
+                                 if( ti == 30)
+                                    statusVal = 30;
+                                 else
+                                    statusVal = ti+1;
                             }
+                            else{
+                                 if(ti == 0)
+                                    statusVal = 0;
+                                 else
+                                    statusVal = ti-1;
+                            }
+                            break;
                         }
+                    }
                     strcpy(name,"20200E");
                     sprintf(value,"%d",statusVal); 
                 }

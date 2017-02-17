@@ -31,6 +31,8 @@ extern void socket_send2(void* buf,int len);
 
 void iAudio_music_ctrl(char* app_name,char* app_value);
 
+int set_light_brightness(int brightness);
+int get_light_brightness();
 int  get_light_status();
 void iAudio_sendmsg(char* buf,int len);
 dev_handle_t *dev;
@@ -144,12 +146,14 @@ void get_all_propery(char* op,br_dev_handle_t dev,ugw_request_handle_t request){
         int color=get_light_status();
         char scolor[10]={0};
         sprintf(scolor,"%02x",color);
-        br_param_list_add_element(args,iAudio_attr[2],scolor);//light color
+        char sbright[10]={0};
+        int bright=get_light_brightness();
+        sprintf(sbright,"%d",bright);
 
-        br_param_list_add_element(args,iAudio_attr[4],"");//light brightness
+        br_param_list_add_element(args,iAudio_attr[2],scolor);//light color
+        br_param_list_add_element(args,iAudio_attr[4],sbright);//light brightness
         br_param_list_add_element(args,iAudio_attr[5],"");//bofang zanting
         br_param_list_add_element(args,iAudio_attr[8],"");//songName
-        br_param_list_add_element(args,iAudio_attr[10],"");//totalTime
         br_dev_operation_rsp(dev,request,0,args);
         br_param_list_destroy(args);
     }
@@ -162,7 +166,25 @@ void iAudio_light_ctrl(char* app_name,char* app_value,int v_name,int v_value){
     }
     int color;
     int mode;
-    if((strcmp(iAudio_attr[1],app_name)==0)||(strcmp(iAudio_attr[2],app_name)==0)||((v_name>0)&&(v_name<3))){
+    int bright;
+    if((strcmp(iAudio_attr[1],app_name)==0)||(v_name==1)){
+        if(v_name!=0){
+            color=v_value;
+        }
+        else{
+            color=atoi(app_value);
+        }
+        int status=0;
+        if(color==0){
+            status=0x0;//guanji
+            write(fd,&status,sizeof(status));
+        }
+        else if(color==1){
+            status=0xFFFFFFFF;//kaiji
+            write(fd,&status,sizeof(status));
+        }
+    }
+    if((strcmp(iAudio_attr[2],app_name)==0)||(v_name==3)){// 3 ledcolor
         if(v_name!=0){
             color=v_value;
         }
@@ -175,32 +197,32 @@ void iAudio_light_ctrl(char* app_name,char* app_value,int v_name,int v_value){
                 grb=0xFFFFFF;//居然是区分大小写的
                 write(fd,&grb,sizeof(grb));
                 break;
-            case COLOR_RED:
-                grb=0xFF00FF;
+            case COLOR_RED://bgr
+                grb=0x0000FF;
                 write(fd,&grb,sizeof(grb));
                 break;
             case COLOR_ORANGE:
-                grb=0xfffffff;
+                grb=0x00A5FF;
                 write(fd,&grb,sizeof(grb));
                 break;
             case COLOR_YELLOW:
-                grb=0xfffffff;
+                grb=0x00FFFF;
                 write(fd,&grb,sizeof(grb));
                 break;
             case COLOR_GREEN:
-                grb=0xfffffff;
+                grb=0x00FF00;
                 write(fd,&grb,sizeof(grb));
                 break;
             case COLOR_CYAN:
-                grb=0xfffffff;
+                grb=0xFFFF00;
                 write(fd,&grb,sizeof(grb));
                 break;
             case COLOR_BLUE:
-                grb=0xfffffff;
+                grb=0xFF0000;
                 write(fd,&grb,sizeof(grb));
                 break;
             case COLOR_PURPLE:
-                grb=0xfffffff;
+                grb=0xF020A0;
                 write(fd,&grb,sizeof(grb));
                 break;
             default:
@@ -214,21 +236,69 @@ void iAudio_light_ctrl(char* app_name,char* app_value,int v_name,int v_value){
         else{
             mode=atoi(app_value);
         }
+        int mode_bgr=0;
         switch (mode){
             case LMODE_STANDARD:
+                mode_bgr=0xFAFAFF;
+                write(fd,&mode_bgr,sizeof(mode_bgr));
                 break;
             case LMODE_READ:
+                mode_bgr=0x8FF6FF;
+                write(fd,&mode_bgr,sizeof(mode_bgr));
                 break;
             case LMODE_ROMANTIC: 
+                mode_bgr=0xCBC0FF;
+                write(fd,&mode_bgr,sizeof(mode_bgr));
                 break;
             case LMODE_SLEEP:
+                mode_bgr=0x00D7FF;
+                write(fd,&mode_bgr,sizeof(mode_bgr));
                 break;
             default:
                 break;
         }
     }
-    else if((strcmp(iAudio_attr[4],app_name)==0)||v_name==4){
+    else if((strcmp(iAudio_attr[4],app_name)==0)||v_name==2){
         //brightness
+        if(v_name!=0){
+            bright=v_value; 
+            
+            switch(bright){
+                case BRIGHT_DOWN:
+                {
+                    int cur_bri=get_light_brightness();
+                    int set_bri=0;
+                    if(cur_bri<70){
+                        set_bri=++cur_bri;
+                    }
+                    set_light_brightness(set_bri);
+                    break;
+                }
+                case BRIGHT_UP:
+                {
+                    int cur_bri=get_light_brightness();
+                    int set_bri=0;
+                    if(cur_bri>15){
+                        set_bri=--cur_bri;
+                    }
+                    set_light_brightness(set_bri);
+                    break;
+                }
+                case BRIGHT_MIN:
+                    set_light_brightness(70);
+                    break;
+                case BRIGHT_MAX:
+                    set_light_brightness(15);
+                    break;
+                default:
+                    break;
+            }   
+        }
+        else{
+            bright=atoi(app_value);
+            int real_bri=70-(int)((bright/100)*55);
+            set_light_brightness(real_bri);
+        }
     }
     printf("----------------end --------\n");
     close(fd);
@@ -246,17 +316,31 @@ void iAudio_music_ctrl(char* app_name,char* app_value){
     //Socket_data music_data={{0}};
     if((strcmp(app_name,"playMode")==0)){//播放 暂停
         buf[26]=0x01;
+        buf[28]=atoi(app_value);
+        buf[30]=0xFD;
+        iAudio_sendmsg(buf,31);
     }
-    else if((strcmp(app_name,"playControl"))){//上一首 下一首
-        buf[1]=0x06;
+    else if((strcmp(app_name,"playControl"))==0){//上一首 下一首
+        buf[26]=0x06;
+        buf[28]=atoi(app_value);
+        buf[30]=0xFD;
+        iAudio_sendmsg(buf,31);
     }
-    else if((strcmp(app_name,"muteStatus"))){//静音
-        buf[1]=0x04;
+    else if((strcmp(app_name,"muteStatus"))==0){//静音
+        buf[26]=0x04; 
+        buf[28]=atoi(app_value);
+        buf[30]=0xFD;
+        iAudio_sendmsg(buf,31);
     }
-
-    buf[28]=atoi(app_value);
-    buf[30]=0xFD;
-    iAudio_sendmsg(buf,31);
+    else if(strcmp(app_name,"alarm")==0){
+        buf[26]=0x07;
+        //char alarm_value[256]={0};
+        int alarm_len=strlen(app_value);
+        buf[29]=alarm_len;
+        memcpy(&buf[30],app_value,alarm_len);
+        buf[30+alarm_len]=0xFD;
+        iAudio_sendmsg(buf,30+alarm_len);
+    }
 }
 
 void iAudio_sendmsg(char* buf,int len){
@@ -266,27 +350,18 @@ void iAudio_sendmsg(char* buf,int len){
     socket_send2(&mymsg,len);
 }
 
-void iAudio_music_report(int attr,int min,int val,char* music_name){
+void iAudio_music_report(int attr,int min,int val,char* music_info){
     param_list_t * music_args = br_param_list_init();
     char s_val[10]={0};
     sprintf(s_val,"%d",val);
-    if(attr==5){//playMode播放暂停
+    if(attr==1){//playMode播放暂停
         br_param_list_add_element(music_args,"playMode",s_val);
     }
-    else if(attr==9){//
-        br_param_list_add_element(music_args,"songName",music_name); 
+    else if(attr==5){//
+        br_param_list_add_element(music_args,"songName",music_info); 
     }
-    else if(attr==8){
+    else if(attr==4){
         br_param_list_add_element(music_args,"muteStatus",s_val);
-    }
-    else if(attr==8){
-        int sec=val+min*60;
-        char s_sec[10]={0};
-        sprintf(s_sec,"%d",sec);
-        br_param_list_add_element(music_args,"totalTime",s_sec);
-    }
-    else if(attr==0xff){
-        br_param_list_add_element(music_args,"","");//没有歌曲信息时，传空
     }
 
     if((br_dev_status_report(reg_iAudio_info->registered_dev_br,music_args))!=0){
@@ -294,7 +369,7 @@ void iAudio_music_report(int attr,int min,int val,char* music_name){
     }
     printf("music report success! \n");
     br_param_list_destroy(music_args);
-    }
+}
 
 int  get_light_status(){
     int fd=open(IAUDIO_LIGHT_DEV,O_RDWR);
@@ -307,6 +382,29 @@ int  get_light_status(){
     
     return light_0x;
     close(fd);
+}
+int set_light_brightness(int brightness){
+
+    int fd=open(IAUDIO_LIGHT_BRIGHTNESS,O_RDONLY);
+    unsigned long args[3];
+    args[0] = 0; //必须为0；
+    args[1] = brightness;//// 此处亮度值位15--70， 15为最亮，70为最暗
+    args[2] = 0;//必须为0;
+    int ret=ioctl(fd,DISP_CMD_LCD_SET_BRIGHTNESS,args);
+    
+    close(fd);
+    return ret;
+
+}
+int get_light_brightness(){
+     
+    int fd=open(IAUDIO_LIGHT_BRIGHTNESS,O_RDONLY);
+    unsigned long args[3];
+    ioctl(fd,DISP_CMD_LCD_GET_BRIGHTNESS,args);
+    int bright=(int)args[1]; 
+    close(fd);
+
+    return bright;
 }
 void iAudio_light_report(){
     printf("start test light\n");    
@@ -461,7 +559,7 @@ void iAudio_init()//self register
 void iAudio_unpack(void* msg,int msg_len){
    // int socket_len=msg_len;
     Socket_data* iAudio_soc=(Socket_data*)msg;//test buyong memcpy
-    char music_name[32]={0};
+    char music_info[256]={0};
     printf("iAudio unpack-------------\n");
     switch (iAudio_soc->dev){
         case DEV_AudioLight:
@@ -469,10 +567,10 @@ void iAudio_unpack(void* msg,int msg_len){
             break;
         case DEV_AudioMusic:
             if(iAudio_soc->devName_len!=0){
-                memcpy(music_name,&iAudio_soc->devName[0],iAudio_soc->devName_len);
+                memcpy(music_info,&iAudio_soc->devName[0],iAudio_soc->devName_len);
             }
             
-            iAudio_music_report(iAudio_soc->devAttr[1],iAudio_soc->statusVal[0],iAudio_soc->statusVal[1],music_name);
+            iAudio_music_report(iAudio_soc->devAttr[1],iAudio_soc->statusVal[0],iAudio_soc->statusVal[1],music_info);
             break;
         default:
             break;

@@ -6,8 +6,12 @@
 #define IAUDIO_LIGHT_DEV "/dev/light_ctr"
 #define IAUDIO_MUSIC_DEV ""
 #define IAUDIO_NOTIFY_LIGHT "/dev/rgb-leds"
+#define IAUDIO_LIGHT_BRIGHTNESS "/dev/disp"
 #define GET_ARRAY_LEN(name) sizeof(name)/sizeof(name[0])
 #define DEV_IAUDIO 0xA0
+
+#define DISP_CMD_LCD_SET_BRIGHTNESS 0x102
+#define DISP_CMD_LCD_GET_BRIGHTNESS 0x103  
 
 typedef struct _dev_reg_devmap{
 	char registered_devid[34];
@@ -38,6 +42,18 @@ typedef enum{
     LMODE_ROMANTIC=0x03,
     LMODE_SLEEP=0x04,
 }light_mode;
+
+typedef enum{
+    BRIGHT_UP=0x0,
+    BRIGHT_DOWN=0x1,
+    BRIGHT_MIN=0x2,
+    BRIGHT_MAX=0x3,
+}bright_mode;
+
+
+
+
+
 
 //这里之前换行时，有一个null，导致了少一个字符串，最后是null，导致错误
 char* iAudio_attr[]={"0",
