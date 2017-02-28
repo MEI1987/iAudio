@@ -18,13 +18,13 @@ typedef struct _dev_reg_devmap{
 	br_dev_handle_t registered_dev_br;
 	int devtype;
 }dev_reg_devmap;
-
+/*
 struct music_info{
+
     char basic_info[10];
     char song_info[256];
-
 };
-
+*/
 typedef enum{
     COLOR_MIN=0x0,
     COLOR_RED=0x01,
@@ -40,7 +40,8 @@ typedef enum{
     LMODE_STANDARD=0x1,
     LMODE_READ=0x02,
     LMODE_ROMANTIC=0x03,
-    LMODE_SLEEP=0x04,
+    //LMODE_SLEEP=0x04,
+    LMODE_NINGJING=0x04,
 }light_mode;
 
 typedef enum{
@@ -50,7 +51,10 @@ typedef enum{
     BRIGHT_MAX=0x3,
 }bright_mode;
 
-
+typedef struct{
+    char buffer[100];
+    int len;
+}ssoc;
 
 
 
@@ -58,7 +62,8 @@ typedef enum{
 //这里之前换行时，有一个null，导致了少一个字符串，最后是null，导致错误
 char* iAudio_attr[]={"0",
     "onOffStatus","ledColor","ledMode","ledBrightness",//1-4 light  
-    "playMode","loopStatus","volume","muteStatus","songName","playControl","totalTime"//5-10 music
+    "playMode","loopStatus","volume","muteStatus","songName","playControl","totalTime",//5-11 music
+    "musicTitle","songInfo",
 };
 
 #endif

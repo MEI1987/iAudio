@@ -523,6 +523,7 @@ static int AirFilter_ctrl(uint8 Attr, uint8 Val){
 	int ret;
 						
 	context_t *ctx = ugw_new_context();
+    ugw_get_devs(handle, ctx);
     for(int i=0;i<ctx->dev_count;i++){
         if(memcmp(ctx->devs[i].type_id,Airfil_DEV,strlen(Airfil_DEV))==0){
             
@@ -607,6 +608,7 @@ static int WaterHeater_ctrl(int attr, int val){
     char value[10]={0};
 						
 	context_t *ctx = ugw_new_context();
+    ugw_get_devs(handle, ctx);
 
 	for(int i=0;i<ctx->dev_count;i++){
 	/*	printf("device_id:%s,ip:%s,connect_status:%d,connect_type:%d,device_type:%s\n",
@@ -743,6 +745,7 @@ static int WashingMachine_ctrl(uint8 Attr, uint8 Val){
 	int ret;
 						
 	context_t *ctx = ugw_new_context();
+    ugw_get_devs(handle, ctx);
     for(int i=0;i<ctx->dev_count;i++){
         if(memcmp(ctx->devs[i].type_id,Airfil_DEV,strlen(WaterHeater_DEV))==0){
             if ((ret = ugw_set_attr(handle, ctx, ctx->devs[i].device_id, 
@@ -767,6 +770,7 @@ static int CookerHood_ctrl(int attr,int val){
     char value[10]={0};
 						
 	context_t *ctx = ugw_new_context();
+    ugw_get_devs(handle, ctx);
 
 	for(int i=0;i<ctx->dev_count;i++){
 	/*	printf("device_id:%s,ip:%s,connect_status:%d,connect_type:%d,device_type:%s\n",
@@ -819,6 +823,190 @@ static int CookerHood_ctrl(int attr,int val){
              if(ret!=0){
                 printf("Cooker Hood ctrl failed; ret=%d\n", ret);
              }
+        }
+    }
+	ugw_free_context(ctx);
+
+	return ret;
+}
+static int AirBox_ctrl(int attr,int val){
+	int ret;
+    char name[10]={0};
+    char value[10]={0};
+
+    char group_opt[32] = "000001";//zumingling
+	pair_t pair[10]={{0}};
+    pair[0].name="221003";//mode
+    //pair[0].value=(char*)malloc(sizeof(char)*7);//这个是解决方案
+    //pair[0].value="321000";
+    pair[1].name="221004";//fengsu
+   // pair[1].value="321000";
+	pair[2].name="221005";//shidu
+    pair[2].value="321000";	
+    pair[3].name="221006";//dingshi
+    pair[3].value="321000";			
+    pair[4].name="221007";//dingshi shijian 
+    pair[4].value="0";	
+    pair[5].name="221001";//kai guanji 
+    pair[5].value="221001";	
+    pair[6].name="221008";//shuimian shezhi
+    pair[6].value="321000";	
+    pair[7].name="221009";//tong suo
+    pair[7].value="321000";	
+    pair[8].name="22100a";//dengguang
+    pair[8].value="321000";//这个是反的，0是开1 是关
+    pair[9].name="22100b";//huixiang 
+    pair[9].value="321000";	
+	context_t *ctx = ugw_new_context();
+    ugw_get_devs(handle, ctx);
+
+	for(int i=0;i<ctx->dev_count;i++){
+	/*	printf("device_id:%s,ip:%s,connect_status:%d,connect_type:%d,device_type:%s\n",
+			context->devs[i].device_id,context->devs[i].ip,context->devs[i].connect_status,
+			context->devs[i].connect_type, context->devs[i].deviceType);*/
+        if(strcmp(ctx->devs[i].type_id,Airbox_DEV)==0){
+            if(attr==0x01){
+                if(val==1){
+                    strcpy(name,"221001");//open airbox
+                    strcpy(value,"221001");
+                }
+                else if(val==0){
+                    strcpy(name,"221002");//close airbox
+                    strcpy(value,"221002");
+                }
+                 ret = ugw_set_attr(handle, ctx, ctx->devs[i].device_id,name,value);
+                 if(ret!=0){
+                    printf("AIR BOX  ctrl failed; ret=%d\n", ret);
+                 }
+            }
+            else if(attr==0x02){
+                //mode 1智能 2净化 3加湿 4净化加湿 5除湿 6净化除湿 7送风
+
+                ret = ugw_get_attr(handle, ctx, ctx->devs[i].device_id,"221004");//获得风速
+                    printf("%s------------\n",ctx->value);
+                    int asdf=atoi(ctx->value); //临时方案
+                    if(asdf==321000){
+                        pair[1].value="321000";
+                    }  
+                    else if(asdf==321001){
+                        pair[1].value="321001";
+                    }  
+                    else if(asdf==321002){
+                        pair[1].value="321002";
+                    }  
+                    else if(asdf==321003){
+                        pair[1].value="321003";
+                    }  
+                    else if(asdf==321004){
+                        pair[1].value="321004";
+                    }  
+                    else if(asdf==321005){
+                        pair[1].value="321005";
+                    }
+                   // strcpy(pair[1].value,ctx->value);//成熟
+                if(val==1){
+                    pair[0].value="321000";
+                }
+                else if(val==2){
+                    pair[0].value="321001";
+                } 
+                else if(val==3){ 
+                    pair[0].value="321002";
+                }
+                else if(val==4){
+                    pair[0].value="321003";
+                }
+                else if(val==5){
+                    pair[0].value="321004";
+                }
+                else if(val==6){ 
+                    pair[0].value="321005";
+                }
+                else if(val==7){ 
+                    pair[0].value="321006";
+                }
+                ugw_exe_ops(handle, ctx, ctx->devs[i].device_id,group_opt,10,pair);
+            }
+            else if(attr==0x03){
+                ret = ugw_get_attr(handle, ctx, ctx->devs[i].device_id,"221003");//获得风速
+                    printf("%s------------\n",ctx->value);
+                    int asdf=atoi(ctx->value); //临时方案
+                    if(asdf==321000){
+                        pair[0].value="321000";
+                    }  
+                    else if(asdf==321001){
+                        pair[0].value="321001";
+                    }  
+                    else if(asdf==321002){
+                        pair[0].value="321002";
+                    }  
+                    else if(asdf==321003){
+                        pair[0].value="321003";
+                    }  
+                    else if(asdf==321004){
+                        pair[0].value="321004";
+                    }  
+                    else if(asdf==321005){
+                        pair[0].value="321005";
+                    }
+                    else if(asdf==321006){
+                        pair[0].value="321006";
+                    }
+                //windspeed 1自动 2强劲 3高风 4中风 5低风 6静音
+                printf("name=%s--\n",name);
+                if(val==1){
+                    pair[1].value="321000";
+                }
+                else if(val==2){
+                    pair[1].value="321001";
+                }
+                else if(val==3){
+                    pair[1].value="321002";
+                }
+                else if(val==4){
+                    pair[1].value="321003";
+                } 
+                else if(val==5){
+                    pair[1].value="321004";
+                }
+                else if(val==6){
+                    pair[1].value="321005";
+                }
+                ugw_exe_ops(handle, ctx, ctx->devs[i].device_id,group_opt,10,pair); 
+            }
+            
+            else if(attr==0x04){
+                if(val==0){
+                    strcpy(pair[6].value,"321000");
+                    //这个是反的，0是开1 是关
+                }
+                else if(val==1){
+                    strcpy(pair[6].value,"321001");
+                }
+                ugw_exe_ops(handle, ctx, ctx->devs[i].device_id,group_opt,10,pair);
+            }
+
+            else if(attr==0x05){
+                strcmp(name,"221009");//0 无童锁 1 有童锁
+                if(val==0){
+                    strcpy(pair[7].value,"321000");
+                }
+                else if(val==1){
+                    strcpy(pair[7].value,"321001");
+                }
+                ugw_exe_ops(handle, ctx, ctx->devs[i].device_id,group_opt,10,pair);
+            }
+            else if(attr==0x06){
+                //0 关闭灯光 1 开启灯光`
+                if(val==0){
+                    strcpy(pair[8].value,"321001");
+                }
+                else if(val==1){
+                    strcpy(pair[8].value,"321000");
+                }
+                ugw_exe_ops(handle, ctx, ctx->devs[i].device_id,group_opt,10,pair);
+            }
+     
         }
     }
 	ugw_free_context(ctx);
@@ -951,7 +1139,6 @@ static void WashingMachine_StateUpdate(char* WashingMachine_devmac) {
 void USDK_unpacket(void *data, uint8 len){
 	uint8 buf[100] = {0};
 	Socket_data Socket = {{0}};
-    int i;
 	memcpy(buf, data, len);
 
 	if((buf[24] == 1)||(buf[24] == 0))
@@ -1019,7 +1206,6 @@ void USDK_unpacket(void *data, uint8 len){
 							}
 						break;
 					case DEV_WIFI_Washer:
-						for(i=0; i < dev_num; i++){
 						    WashingMachine_ctrl( Socket.devAttr[1],Socket.statusVal[1]);
 						/*	if(ret){
 								buf[26] = Socket.devAttr[1];
@@ -1028,10 +1214,11 @@ void USDK_unpacket(void *data, uint8 len){
 								USDK_msg_up(buf, Socket_len,output_MAC);
 							}	
                             */
-						}
                     case DEV_WIFI_CookerHood:
                         CookerHood_ctrl(Socket.devAttr[1],Socket.statusVal[1]);
-
+						break;
+                    case DEV_WIFI_Airbox:
+                        AirBox_ctrl(Socket.devAttr[1],Socket.statusVal[1]);
 						break;
 					default:
 						break;

@@ -161,7 +161,7 @@ void socket_recv_pthread(void){
 	pthread_exit(0);
 }
 
-static void scocket_once_send(void *msg, int len){
+void scocket_once_send(void *msg, int len){
 
 	int sockfd,sendbytes;
 	struct hostent *host;
@@ -209,16 +209,7 @@ static void scocket_once_send(void *msg, int len){
 		serv_addr.sin_port=htons(CLIENTPORT);
 		serv_addr.sin_addr=*((struct in_addr *)host->h_addr);
 		bzero(&(serv_addr.sin_zero),8);
-		//reuse port
-		/*
-		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)) < 0)
-	       	{
-	                perror("recv:setsockopet error\n");
-	                return;
-	        }
-	        */
-
-		/*connect to server */
+			/*connect to server */
 		if(connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(struct sockaddr))== -1){
 			perror("send:connect ");
 			return;
@@ -234,7 +225,6 @@ static void scocket_once_send(void *msg, int len){
 
 }
 
-/*socket_send_thread*/
 void socket_send2(void* buf,int len){
 	MSG *socket_msg=(MSG*)buf;
 	printf("socket_msg.type =%ld \n" ,socket_msg->type);
@@ -266,7 +256,7 @@ void socket_send2(void* buf,int len){
             socket_send_buf[2] = 0x01;
             socket_send_buf[len-1] = SOCKET_END_0xFD;
 
-             scocket_once_send( socket_send_buf, len);
+            scocket_once_send( socket_send_buf, len);
         }
              break;
              
@@ -288,10 +278,8 @@ void socket_send2(void* buf,int len){
         default:
             break;
 		}
-
 		pthread_mutex_unlock(&socket_status_mutex);
 
 		sleep(1);
 
-		pthread_exit(0);
 }

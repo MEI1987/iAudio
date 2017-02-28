@@ -27,7 +27,7 @@ typedef enum{
 typedef enum{
 	DEV_TYPE_UNDEF = 0,
 	DEV_TYPE_UGW = 0x01,
-	DEV_TYPE_IAUDIO = 0x05,
+	DEV_TYPE_IAUDIO = 0x02,
 	DEV_TYPE_MAX,	
 }GateWay_Dev_Type;
 
@@ -44,6 +44,7 @@ typedef enum{
 	DEV_WIFI_iRobot = 0x16,
 	DEV_AudioLight = 0x17,
 	DEV_AudioMusic = 0x18,
+    DEV_WIFI_Airbox=0x19,
 	DEV_MAX ,
 
 }GateWay_Dev;
