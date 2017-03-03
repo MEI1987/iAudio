@@ -27,7 +27,7 @@ extern void attr_to_cloud(char* attr[],char* attr_val[],int attr_num);
 
 //static void WIFI_DevState_update(uint8 devtype,char* devmac);
 
-extern void socket_send2(void* buf);
+extern void socket_send2(void* buf,int len);
 extern char* Robot_Attr[];
 int dev_num;
 static  ugw_handle_t *handle;
@@ -42,14 +42,14 @@ static  uint8 output_MAC[32]={0};
 extern uint8 CmdNo_save;
 
 
-static void USDK_send_dev_msg(void *msg , uint8 len)
+static void USDK_send_dev_msg(char *msg , int len)
 {
 	MSG pmsg = {0};
 
 	pmsg.type		= MSG_USDK;
 	memcpy(&pmsg.msg, msg,  len);
 
-	socket_send2( &pmsg);
+	socket_send2( &pmsg,len);
 }
 
 static void* dev_list_callback(void *arg, context_t *context){
@@ -69,21 +69,84 @@ static void* attr_push_callback(void *arg, context_t *context){
 	
 	for(int i=0;i<context->pair_count;i++)
 		printf("name:%s,value:%s\n",context->pairs[i].name,context->pairs[i].value);
-/*    context_t* ctx = ugw_new_context();
+   
+    context_t* ctx = ugw_new_context();
 
     ugw_get_devs(handle, ctx);
 
     for(int i=0;i<ctx->dev_count;i++){
-        if(memcmp(ctx->devs[i].device_id,context->device_id,16)==0){
-            printf("%s-------------%s\n",ctx->devs[i].device_id,ctx->devs[i].deviceType);
+        if(strcmp( ctx->devs[ i].type_id,Aircon_DEV)==0){
+            //attr info to socket
+            char buf_air[100]={0};
+            buf_air[0]=SOCKET_HEAD_0xFE;
+            buf_air[1]=0x1f;
+            buf_air[2]=0x01;
+            buf_air[3]=0x03;
+            buf_air[5]=0x10;
+            buf_air[24] = 0x01;
+            buf_air[25]=0x02;//on-off
+            buf_air[27]=0x00;
+            buf_air[30]=SOCKET_END_0xFD;
+                    
+            if ((ugw_get_attr(handle, ctx, ctx->devs[ i].device_id,"202001"))== 0)//这是关闭
+            {
+                buf_air[26]=0x03;//on-off
+                if(strcmp(ctx->value,"202001")==0){
+                    buf_air[28]=0x00;
+                }
+                else{
+                    buf_air[28]=0x01;
+                }
+                USDK_send_dev_msg(buf_air,31); 
+            }
 
-            wif_devtype=judge_wifi_dev(ctx->devs[i].type_id);
+            if(ugw_get_attr(handle, ctx, ctx->devs[ i].device_id,"20200D")==0){
+                buf_air[26]=0x04;
+                if(strcmp(ctx->value,"302000")==0){
+                    buf_air[28]=0x01;     
+                }
+                else if(strcmp(ctx->value,"302001")==0){
+                    buf_air[28]=0x02;     
+                } 
+                else if(strcmp(ctx->value,"302002")==0){
+                    buf_air[28]=0x03;     
+                } 
+                else if(strcmp(ctx->value,"302003")==0){
+                    buf_air[28]=0x04;     
+                } 
+                else if(strcmp(ctx->value,"302004")==0){
+                    buf_air[28]=0x05;     
+                }
+                USDK_send_dev_msg(buf_air,31); 
+            }
+            if(ugw_get_attr(handle, ctx, ctx->devs[ i].device_id,"602003")==0){
+                buf_air[26]=0x01;//dangqian wendu
+                buf_air[28]=atoi(ctx->value); 
+                USDK_send_dev_msg(buf_air,31); 
+            }
+            if(ugw_get_attr(handle, ctx, ctx->devs[ i].device_id,"20200D")==0){
+                buf_air[26]=0x07;
+             
+                if(strcmp(ctx->value,"302001")==0){
+                    buf_air[28]=0x03;     
+                } 
+                else if(strcmp(ctx->value,"302002")==0){
+                    buf_air[28]=0x02;     
+                } 
+                else if(strcmp(ctx->value,"302003")==0){
+                    buf_air[28]=0x01;     
+                } 
+                else if(strcmp(ctx->value,"302004")==0){
+                    buf_air[28]=0x04;     
+                }
 
-            WIFI_DevState_update(wif_devtype,context->device_id);
+                USDK_send_dev_msg(buf_air,31); 
+
+            }
         }
     }
     ugw_free_context(ctx);
-*/
+
     return context;
 }
 
@@ -269,8 +332,8 @@ static void USDK_devid_to_listmac(char* devid){
 
 static void USDK_msg_up(void *data, uint8 len,uint8* mac_id)
 {
-	uint8 buf [100]={0};
-	uint8 up_length=len;
+	char buf [100]={0};
+	int  up_length=len;
 
 	memcpy(buf,data,len);
 
@@ -1309,7 +1372,7 @@ void USDK_device_txloop(void){
 }
 int USDK_device_init(void)
 {
-
+    sleep(20);
 	handle = ugw_init(&ugw_listener);
    
 	if((handle<0)||(handle==NULL)){

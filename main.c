@@ -29,20 +29,21 @@ static int Create_Thread_Task(void){
 		printf ("Create psocket_recv_pthread! err\n");
 		return FALSE;
 	}
-	
+	  /*-----------------key_monitor  */
+    ret=pthread_create(&thrd,NULL,(void *)key_monitor,NULL);
+	if(ret!=0){
+		printf ("Create key_monitor thread  error\n");
+		return FALSE;
+	}
 	/*---------------------Usdk---------------------*/
+
 	USDK_device_init();
 	ret=pthread_create(&thrd,NULL,(void *) USDK_device_txloop,NULL);
 	if(ret!=0){
 		printf ("Create USDK_device_txloop! err\n");
 		return FALSE;
 	}
-    /*-----------------key_monitor  */
-    ret=pthread_create(&thrd,NULL,(void *)key_monitor,NULL);
-	if(ret!=0){
-		printf ("Create key_monitor thread  error\n");
-		return FALSE;
-	}
+  
 	return TRUE;
 }
 
